@@ -1,4 +1,5 @@
-import { decrypt, getDecryptor } from '../src'
+import { decrypt } from '../src'
+import { getDecryptor } from '../src/kms'
 
 const mockName = 'gcloud/resource/path'
 const mockKMSClient = {
