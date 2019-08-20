@@ -1,17 +1,16 @@
 import * as _ from 'lodash'
 import { getDecryptor } from './kms'
 
-export async function decrypt() {
-  // Get the list of key-value pairs from environment variables.
-  type Pair = [string, string]
-  let pairs: Pair[] = _.toPairs(process.env)
+type Pair = [string, string]
+type Env = _.Dictionary<string>
 
+export async function decrypt(env: Env): Promise<Env> {
   // Find those which marked as encrypted and decrypt them.
   // NOTE original variable will be removed.
   const suffix = '_ENCRYPTED'
   let decryptText: (cipertext: string) => Promise<string>
-  pairs = await Promise.all(
-    pairs.map(
+  const decryptedPairs: ArrayLike<Pair> = await Promise.all(
+    _.toPairs(env).map(
       ([key, value]): Promise<Pair> => {
         if (key.endsWith(suffix)) {
           if (!decryptText) {
@@ -35,5 +34,9 @@ export async function decrypt() {
   )
 
   // Compose an object with decrypted environment
-  return _.fromPairs(pairs)
+  return _.fromPairs(decryptedPairs)
+}
+
+export async function decryptProcessEnv(): Promise<_.Dictionary<String>> {
+  return decrypt(process.env)
 }

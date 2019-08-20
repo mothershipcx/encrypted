@@ -1,5 +1,4 @@
-import { decrypt } from '../src'
-import { getDecryptor } from '../src/kms'
+import { decrypt, decryptProcessEnv } from '../src'
 
 const mockName = 'gcloud/resource/path'
 const mockKMSClient = {
@@ -13,42 +12,55 @@ jest.mock('@google-cloud/kms', () => ({
 }))
 
 describe('Environment utils', () => {
-  let envBackup: NodeJS.ProcessEnv
-
-  beforeAll(() => {
-    envBackup = process.env
-  })
-
-  beforeEach(() => {
-    process.env = {}
-    mockKMSClient.cryptoKeyPath.mockClear()
-  })
-
-  afterAll(() => {
-    process.env = envBackup
-  })
-
-  it('returns process environment variables', () => {
-    process.env.USER = 'alice'
-    process.env.FOO = 'bar'
-    expect(decrypt()).resolves.toEqual({
-      USER: 'alice',
-      FOO: 'bar'
+  describe('Decrypt a dictionary', () => {
+    it('returns process environment variables', async () => {
+      await expect(
+        decrypt({
+          USER: 'alice',
+          FOO: 'bar'
+        })
+      ).resolves.toEqual({
+        USER: 'alice',
+        FOO: 'bar'
+      })
+      // Ensure lazy initialization for the decryptor
+      expect(mockKMSClient.cryptoKeyPath).not.toBeCalled()
     })
-    // Ensure lazy initialization for the decryptor
-    expect(mockKMSClient.cryptoKeyPath).not.toBeCalled()
+
+    it('returns decrypted variables', async () => {
+      await expect(
+        decrypt({
+          USER: 'alice',
+          PASSWORD_ENCRYPTED: 'encrypted password',
+          API_KEY_ENCRYPTED: 'encrypted api key'
+        })
+      ).resolves.toEqual({
+        USER: 'alice',
+        PASSWORD: 'secret',
+        API_KEY: 'secret'
+      })
+      // Ensure we init decryptor once
+      expect(mockKMSClient.cryptoKeyPath).toBeCalledTimes(1)
+    })
   })
 
-  it('returns decrypted variables', () => {
-    process.env.USER = 'alice'
-    process.env.PASSWORD_ENCRYPTED = 'encrypted password'
-    process.env.API_KEY_ENCRYPTED = 'encrypted api key'
-    expect(decrypt()).resolves.toEqual({
-      USER: 'alice',
-      PASSWORD: 'secret',
-      API_KEY: 'secret'
+  describe('Decrypt process.env', () => {
+    let envBackup: NodeJS.ProcessEnv
+
+    beforeAll(() => {
+      envBackup = { ...process.env }
     })
-    // Ensure we init decryptor once
-    expect(mockKMSClient.cryptoKeyPath).toBeCalledTimes(1)
+
+    afterAll(() => {
+      process.env = envBackup
+    })
+
+    it('calls decrypt with process.env', async () => {
+      const TEST_DECRYPT = 'mocked env variable value'
+      process.env = { ...process.env, TEST_DECRYPT }
+      await expect(decryptProcessEnv()).resolves.toEqual(
+        expect.objectContaining({ TEST_DECRYPT })
+      )
+    })
   })
 })
