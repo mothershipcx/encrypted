@@ -1,28 +1,43 @@
 import * as _ from 'lodash'
-import { getDecryptor } from './kms'
+import { getDecryptor, IKMSConfig } from './kms'
 
-type Pair = [string, string]
-type Env = _.Dictionary<string>
+type Pair = [string, any]
+type Config = _.Dictionary<any>
 
-export async function decrypt(env: Env): Promise<Env> {
+export async function decrypt(
+  config: Config,
+  kms?: IKMSConfig
+): Promise<Config> {
   // Find those which marked as encrypted and decrypt them.
   // NOTE original variable will be removed.
-  const suffix = '_ENCRYPTED'
-  let decryptText: (cipertext: string) => Promise<string>
+  const suffix = /_?encrypted$/i
   const decryptedPairs: ArrayLike<Pair> = await Promise.all(
-    _.toPairs(env).map(
+    _.toPairs(config).map(
       ([key, value]): Promise<Pair> => {
-        if (key.endsWith(suffix)) {
-          if (!decryptText) {
-            decryptText = getDecryptor()
-          }
+        // Recursively call `decrypt` for nested configs
+        if (typeof value === 'object') {
+          return new Promise((resolve, reject) => {
+            decrypt(value, kms)
+              .then((decryptedChild: Config) => {
+                // Flatten nested config if it has `encrypted` key
+                const decryptedValue: Config | string = _.isEqual(
+                  _.keys(value),
+                  ['encrypted']
+                )
+                  ? _.values(decryptedChild).pop()
+                  : decryptedChild
+                resolve([key, decryptedValue])
+              })
+              .catch(reject)
+          })
+        }
+        if (typeof value === 'string' && suffix.test(key)) {
+          // Lazy initialization
+          const decryptText = getDecryptor(kms)
           return new Promise((resolve, reject) => {
             decryptText(value)
               .then((decryptedValue: string) =>
-                resolve([
-                  key.substring(0, key.length - suffix.length),
-                  decryptedValue
-                ])
+                resolve([key.replace(suffix, ''), decryptedValue])
               )
               .catch(reject)
           })
@@ -37,6 +52,6 @@ export async function decrypt(env: Env): Promise<Env> {
   return _.fromPairs(decryptedPairs)
 }
 
-export async function decryptProcessEnv(): Promise<_.Dictionary<String>> {
+export async function decryptProcessEnv(): Promise<Config> {
   return decrypt(process.env)
 }
