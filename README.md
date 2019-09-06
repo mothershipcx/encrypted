@@ -4,15 +4,18 @@ _NOTE_ The solution is for Google Cloud Platform only
 
 ## Use Case
 
-You have a backend app/service/function you deploy on GCP with Cloud Functions, App Engine, etc. It requires some secret variables to pass in order to configure the deployment. You want to keep these secrets in deployments scripts, on CI, wherether. You should take care of encryption in order to don't compromise this data.
-
-## The Solution
-
+You have a backend app/service/function you deploy on GCP with Cloud Functions, App Engine, etc. It requires some secret variables to pass in order to configure the deployment. You want to keep these secrets in deployments scripts, on CI, wherether. You should take care of encryption in order to don't compromise this data. The solution this libriry provides is
 1. Encrypt secrets using KMS
 2. Set environment variables with encrypted values
 3. Use `encrypted.decryptProcessEnv` to decrypt `process.env`
 
-## The Setup
+## Installation
+
+```bash
+npm install @msp/encrypted
+```
+
+## Setup
 
 ### Encrypt Secrets
 
