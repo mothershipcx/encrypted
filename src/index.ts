@@ -1,12 +1,12 @@
 import * as _ from 'lodash'
-import { getDecryptor, KMSConfig } from './kms'
+import { getDecryptor, IKMSConfig } from './kms'
 
 type Pair = [string, any]
 type Config = _.Dictionary<any>
 
 export async function decrypt(
   config: Config,
-  kms?: KMSConfig
+  kms?: IKMSConfig
 ): Promise<Config> {
   // Find those which marked as encrypted and decrypt them.
   // NOTE original variable will be removed.

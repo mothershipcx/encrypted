@@ -2,7 +2,7 @@ import * as kms from '@google-cloud/kms'
 import * as _ from 'lodash'
 
 export type Decryptor = (ciphertextBase64: string) => Promise<string>
-export interface KMSConfig {
+export interface IKMSConfig {
   project?: string
   location?: string
   ring?: string
@@ -10,7 +10,7 @@ export interface KMSConfig {
 }
 
 export const getDecryptor = _.memoize(
-  (config: KMSConfig = {}): Decryptor => {
+  (config: IKMSConfig = {}): Decryptor => {
     const client = new kms.v1.KeyManagementServiceClient()
     const e = process.env
     const projectId =
