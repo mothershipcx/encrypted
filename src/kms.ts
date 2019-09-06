@@ -1,6 +1,9 @@
 import * as kms from '@google-cloud/kms'
+import * as _ from 'lodash'
 
-export function getDecryptor() {
+export type Decryptor = (ciphertextBase64: string) => Promise<string>
+
+export function getDecryptor(): Decryptor {
   const client = new kms.v1.KeyManagementServiceClient()
   const e = process.env
   const projectId =
@@ -20,3 +23,5 @@ export function getDecryptor() {
     return result[0].plaintext.toString()
   }
 }
+
+export const getDefaultDecryptor = _.memoize(getDecryptor)

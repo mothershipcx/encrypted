@@ -1,5 +1,5 @@
 import * as _ from 'lodash'
-import { getDecryptor } from './kms'
+import { getDefaultDecryptor } from './kms'
 
 type Pair = [string, any]
 type Config = _.Dictionary<any>
@@ -8,7 +8,6 @@ export async function decrypt(config: Config): Promise<Config> {
   // Find those which marked as encrypted and decrypt them.
   // NOTE original variable will be removed.
   const suffix = /_?encrypted$/i
-  let decryptText: (cipertext: string) => Promise<string>
   const decryptedPairs: ArrayLike<Pair> = await Promise.all(
     _.toPairs(config).map(
       ([key, value]): Promise<Pair> => {
@@ -30,9 +29,7 @@ export async function decrypt(config: Config): Promise<Config> {
           })
         }
         if (typeof value === 'string' && suffix.test(key)) {
-          if (!decryptText) {
-            decryptText = getDecryptor()
-          }
+          const decryptText = getDefaultDecryptor()
           return new Promise((resolve, reject) => {
             decryptText(value)
               .then((decryptedValue: string) =>

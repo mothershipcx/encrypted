@@ -88,12 +88,18 @@ describe('Environment utils', () => {
           postgres: {
             user: 'alice',
             passwordencrypted: base64('password')
+          },
+          mailgun: {
+            keyencrypted: base64('api-key')
           }
         })
       ).resolves.toEqual({
         postgres: {
           user: 'alice',
           password: 'secret'
+        },
+        mailgun: {
+          key: 'secret'
         }
       })
       // Ensure we init decryptor once
