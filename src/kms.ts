@@ -14,7 +14,8 @@ export function getDecryptor() {
     e.KMS_KEY_RING,
     e.KMS_CRYPTO_KEY
   )
-  return async (ciphertext: string) => {
+  return async (ciphertextBase64: string) => {
+    const ciphertext = Buffer.from(ciphertextBase64, 'base64').toString()
     const result = await client.decrypt({ ciphertext, name: formattedName })
     return result[0].plaintext.toString()
   }

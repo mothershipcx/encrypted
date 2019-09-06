@@ -28,11 +28,12 @@ describe('Environment utils', () => {
     })
 
     it('returns decrypted variables', async () => {
+      const base64 = (value: string) => Buffer.from(value).toString('base64')
       await expect(
         decrypt({
           USER: 'alice',
-          PASSWORD_ENCRYPTED: 'encrypted password',
-          API_KEY_ENCRYPTED: 'encrypted api key'
+          PASSWORD_ENCRYPTED: base64('encrypted password'),
+          API_KEY_ENCRYPTED: base64('encrypted api key')
         })
       ).resolves.toEqual({
         USER: 'alice',
