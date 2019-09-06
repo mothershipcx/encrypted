@@ -49,10 +49,47 @@ env_variables:
 
 ```javascript
 // index.js
-import { decryptProcessEnv } from '@msp/encrypted'
+const { decryptProcessEnv } = require('@msp/encrypted')
 
 decryptProcessEnv().then(env => {
   const { API_KEY } = env
   initThirdPartySDK(API_KEY)
+})
+```
+
+#### Firebase Functions
+
+Firebase Functions does not provide a tool to setup ENV variables (in contrast to original Cloud Functions). However it has it's own tooling https://firebase.google.com/docs/functions/config-env.
+
+```bash
+# [optional] Configure KMS project if it's different from where you deploy functions
+firebase functions:config:set kms.project=PROJECT_ID
+
+# [optional] Configure KMS location if it's not "global" (the default)
+firebase functions:config:set kms.location=LOCATION_NAME
+
+# Configure KMS key ring and crypto key
+firebase functions:config:set kms.ring=staging kms.key=secret-env
+```
+
+Configure the app with your secrets.
+
+```bash
+# You can either add suffix
+firebase functions:config:set api.keyencrypted=CiQAXB10DCPLUaOac...
+
+# ...or as a nested object ".encrypted"
+firebase functions:config:set api.key.encrypted=CiQAXB10DCPLUaOac...
+```
+
+Usage example
+
+```javascript
+const functions = require('firebase-functions')
+const { decrypt } = require('@msp/encrypted')
+
+const config = functions.config()
+decrypt(config, config.kms).then(env => {
+  initThirdPartySDK(env.api.key)
 })
 ```
