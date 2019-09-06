@@ -1,3 +1,5 @@
+import * as _ from 'lodash'
+import { getDefaultDecryptor } from '../src/kms'
 import { decrypt, decryptProcessEnv } from '../src'
 
 const mockName = 'gcloud/resource/path'
@@ -14,6 +16,10 @@ jest.mock('@google-cloud/kms', () => ({
 const base64 = (value: string) => Buffer.from(value).toString('base64')
 
 describe('Environment utils', () => {
+  beforeEach(() => {
+    getDefaultDecryptor.cache.clear()
+  })
+
   describe('Decrypt a flat ENV dictionary', () => {
     it('returns process environment variables', async () => {
       await expect(

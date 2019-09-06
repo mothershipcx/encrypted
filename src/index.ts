@@ -29,6 +29,7 @@ export async function decrypt(config: Config): Promise<Config> {
           })
         }
         if (typeof value === 'string' && suffix.test(key)) {
+          // Lazy initialization
           const decryptText = getDefaultDecryptor()
           return new Promise((resolve, reject) => {
             decryptText(value)
