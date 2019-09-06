@@ -1,25 +1,14 @@
 import * as _ from 'lodash'
-import { getDefaultDecryptor } from '../src/kms'
+import { getDecryptor } from '../src/kms'
 import { decrypt, decryptProcessEnv } from '../src'
 
-const mockName = 'gcloud/resource/path'
-const mockKMSClient = {
-  cryptoKeyPath: jest.fn().mockReturnValue(mockName),
-  decrypt: jest.fn().mockResolvedValue([{ plaintext: Buffer.from('secret') }])
-}
-jest.mock('@google-cloud/kms', () => ({
-  v1: {
-    KeyManagementServiceClient: jest.fn(() => mockKMSClient)
-  }
+jest.mock('../src/kms', () => ({
+  getDecryptor: jest.fn().mockReturnValue(jest.fn().mockResolvedValue('secret'))
 }))
 
 const base64 = (value: string) => Buffer.from(value).toString('base64')
 
 describe('Environment utils', () => {
-  beforeEach(() => {
-    getDefaultDecryptor.cache.clear()
-  })
-
   describe('Decrypt a flat ENV dictionary', () => {
     it('returns process environment variables', async () => {
       await expect(
@@ -31,8 +20,8 @@ describe('Environment utils', () => {
         USER: 'alice',
         FOO: 'bar'
       })
-      // Ensure lazy initialization for the decryptor
-      expect(mockKMSClient.cryptoKeyPath).not.toBeCalled()
+      // Ensure lazy initialization for the decryptor did not happen
+      expect(getDecryptor).not.toBeCalled()
     })
 
     it('returns decrypted variables', async () => {
@@ -47,8 +36,6 @@ describe('Environment utils', () => {
         PASSWORD: 'secret',
         API_KEY: 'secret'
       })
-      // Ensure we init decryptor once
-      expect(mockKMSClient.cryptoKeyPath).toBeCalledTimes(1)
     })
   })
 
@@ -84,8 +71,8 @@ describe('Environment utils', () => {
         }
       }
       await expect(decrypt(config)).resolves.toEqual(config)
-      // Ensure lazy initialization for the decryptor
-      expect(mockKMSClient.cryptoKeyPath).not.toBeCalled()
+      // Ensure lazy initialization for the decryptor did not happen
+      expect(getDecryptor).not.toBeCalled()
     })
 
     it('returns decrypted variables', async () => {
@@ -108,8 +95,6 @@ describe('Environment utils', () => {
           key: 'secret'
         }
       })
-      // Ensure we init decryptor once
-      expect(mockKMSClient.cryptoKeyPath).toBeCalledTimes(1)
     })
 
     it('flattens the structure if nested object contains only encrypted key', async () => {
@@ -128,8 +113,37 @@ describe('Environment utils', () => {
           password: 'secret'
         }
       })
-      // Ensure we init decryptor once
-      expect(mockKMSClient.cryptoKeyPath).toBeCalledTimes(1)
+    })
+  })
+
+  describe('Explicit KMS config', () => {
+    beforeAll(() => {})
+
+    it('passes config to getDecryptor', async () => {
+      const config = {}
+      await expect(
+        decrypt(
+          {
+            postgres: {
+              user: 'alice',
+              passwordencrypted: base64('password')
+            },
+            mailgun: {
+              keyencrypted: base64('api-key')
+            }
+          },
+          config
+        )
+      ).resolves.toEqual({
+        postgres: {
+          user: 'alice',
+          password: 'secret'
+        },
+        mailgun: {
+          key: 'secret'
+        }
+      })
+      expect(getDecryptor).lastCalledWith(config)
     })
   })
 })
