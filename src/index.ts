@@ -53,5 +53,5 @@ export async function decrypt(
 }
 
 export async function decryptProcessEnv(): Promise<Config> {
-  return decrypt(process.env)
+  return decrypt(_.pickBy(process.env, (v, k) => !k.startsWith('npm_package_')))
 }

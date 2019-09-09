@@ -57,6 +57,23 @@ describe('Environment utils', () => {
         expect.objectContaining({ TEST_DECRYPT })
       )
     })
+
+    it('skips npm packages added to process.env', async () => {
+      // Jest add 'npm_package_*' stuff to process.env
+      const npm_package_dependencies__msp_encrypted = '^0.1.1'
+      process.env = { ...process.env, npm_package_dependencies__msp_encrypted }
+      const env = await decryptProcessEnv()
+      // Ensure we do not get any of 'npm_package_*' and do not confuse decryptor
+      expect(env).not.toEqual(
+        expect.objectContaining({ npm_package_dependencies__msp_encrypted })
+      )
+      expect(env).not.toEqual(
+        expect.objectContaining({
+          npm_package_dependencies__msp: expect.any('string')
+        })
+      )
+      expect(getDecryptor).not.toBeCalled()
+    })
   })
 
   describe('Decrypt nested objects', () => {
