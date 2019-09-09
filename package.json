@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "author": "Anton Egorov <anton.egoroff@gmail.com>",
   "license": "MIT",
-  "main": "index.js",
+  "main": "dist/index.js",
   "files": [
     "dist"
   ],
