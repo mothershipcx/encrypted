@@ -1,7 +1,7 @@
 {
   "name": "@msp/encrypted",
   "description": "Tools to manage secrets encrypted with GCP KMS",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Anton Egorov <anton.egoroff@gmail.com>",
   "license": "MIT",
   "main": "dist/index.js",
