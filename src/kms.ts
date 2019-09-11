@@ -26,8 +26,10 @@ export const getDecryptor = _.memoize(
       config.key || e.KMS_CRYPTO_KEY
     )
     return async (ciphertextBase64: string) => {
-      const ciphertext = Buffer.from(ciphertextBase64, 'base64').toString()
-      const result = await client.decrypt({ ciphertext, name: formattedName })
+      const result = await client.decrypt({
+        ciphertext: ciphertextBase64,
+        name: formattedName
+      })
       return result[0].plaintext.toString()
     }
   }
