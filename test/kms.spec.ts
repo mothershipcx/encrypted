@@ -147,9 +147,10 @@ describe('KMS decrypt wrapper', () => {
     it('calls wrapped decrypt function', async () => {
       const wrapper = getDecryptor()
       expect(wrapper).toBeDefined()
-      await expect(wrapper(base64('encrypted secret'))).resolves.toBe('secret')
+      const encodedSecret = base64('encrypted secret')
+      await expect(wrapper(encodedSecret)).resolves.toBe('secret')
       expect(mockKMSClient.decrypt).toHaveBeenLastCalledWith({
-        ciphertext: 'encrypted secret',
+        ciphertext: encodedSecret,
         name: mockName
       })
     })
