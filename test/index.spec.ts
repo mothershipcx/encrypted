@@ -3,7 +3,9 @@ import { getDecryptor } from '../src/kms'
 import { decrypt, decryptProcessEnv } from '../src'
 
 jest.mock('../src/kms', () => ({
-  getDecryptor: jest.fn().mockReturnValue(jest.fn().mockResolvedValue('secret'))
+  getDecryptor: jest
+    .fn()
+    .mockReturnValue(jest.fn().mockResolvedValue('secret')),
 }))
 
 const base64 = (value: string) => Buffer.from(value).toString('base64')
@@ -14,11 +16,11 @@ describe('Environment utils', () => {
       await expect(
         decrypt({
           USER: 'alice',
-          FOO: 'bar'
+          FOO: 'bar',
         })
       ).resolves.toEqual({
         USER: 'alice',
-        FOO: 'bar'
+        FOO: 'bar',
       })
       // Ensure lazy initialization for the decryptor did not happen
       expect(getDecryptor).not.toBeCalled()
@@ -29,12 +31,12 @@ describe('Environment utils', () => {
         decrypt({
           USER: 'alice',
           PASSWORD_ENCRYPTED: base64('encrypted password'),
-          API_KEY_ENCRYPTED: base64('encrypted api key')
+          API_KEY_ENCRYPTED: base64('encrypted api key'),
         })
       ).resolves.toEqual({
         USER: 'alice',
         PASSWORD: 'secret',
-        API_KEY: 'secret'
+        API_KEY: 'secret',
       })
     })
   })
@@ -69,7 +71,7 @@ describe('Environment utils', () => {
       )
       expect(env).not.toEqual(
         expect.objectContaining({
-          npm_package_dependencies__msp: expect.any('string')
+          npm_package_dependencies__msp: expect.any('string'),
         })
       )
       expect(getDecryptor).not.toBeCalled()
@@ -81,11 +83,11 @@ describe('Environment utils', () => {
       const config = {
         postgres: {
           user: 'alice',
-          database: 'mothership'
+          database: 'mothership',
         },
         sentry: {
-          dsn: 'https://abc123@sentry.io/1234567'
-        }
+          dsn: 'https://abc123@sentry.io/1234567',
+        },
       }
       await expect(decrypt(config)).resolves.toEqual(config)
       // Ensure lazy initialization for the decryptor did not happen
@@ -97,20 +99,20 @@ describe('Environment utils', () => {
         decrypt({
           postgres: {
             user: 'alice',
-            passwordencrypted: base64('password')
+            passwordencrypted: base64('password'),
           },
           mailgun: {
-            keyencrypted: base64('api-key')
-          }
+            keyencrypted: base64('api-key'),
+          },
         })
       ).resolves.toEqual({
         postgres: {
           user: 'alice',
-          password: 'secret'
+          password: 'secret',
         },
         mailgun: {
-          key: 'secret'
-        }
+          key: 'secret',
+        },
       })
     })
 
@@ -120,15 +122,15 @@ describe('Environment utils', () => {
           postgres: {
             user: 'alice',
             password: {
-              encrypted: base64('password')
-            }
-          }
+              encrypted: base64('password'),
+            },
+          },
         })
       ).resolves.toEqual({
         postgres: {
           user: 'alice',
-          password: 'secret'
-        }
+          password: 'secret',
+        },
       })
     })
   })
@@ -143,22 +145,22 @@ describe('Environment utils', () => {
           {
             postgres: {
               user: 'alice',
-              passwordencrypted: base64('password')
+              passwordencrypted: base64('password'),
             },
             mailgun: {
-              keyencrypted: base64('api-key')
-            }
+              keyencrypted: base64('api-key'),
+            },
           },
           config
         )
       ).resolves.toEqual({
         postgres: {
           user: 'alice',
-          password: 'secret'
+          password: 'secret',
         },
         mailgun: {
-          key: 'secret'
-        }
+          key: 'secret',
+        },
       })
       expect(getDecryptor).lastCalledWith(config)
     })

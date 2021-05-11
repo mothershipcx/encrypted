@@ -3,12 +3,12 @@ import { getDecryptor } from '../src/kms'
 const mockName = 'gcloud/resource/path'
 const mockKMSClient = {
   cryptoKeyPath: jest.fn().mockReturnValue(mockName),
-  decrypt: jest.fn().mockResolvedValue([{ plaintext: Buffer.from('secret') }])
+  decrypt: jest.fn().mockResolvedValue([{ plaintext: Buffer.from('secret') }]),
 }
 jest.mock('@google-cloud/kms', () => ({
   v1: {
-    KeyManagementServiceClient: jest.fn(() => mockKMSClient)
-  }
+    KeyManagementServiceClient: jest.fn(() => mockKMSClient),
+  },
 }))
 
 const base64 = (value: string) => Buffer.from(value).toString('base64')
@@ -27,7 +27,7 @@ describe('KMS decrypt wrapper', () => {
   beforeEach(() => {
     process.env = {
       KMS_KEY_RING: 'test-keyring',
-      KMS_CRYPTO_KEY: 'test-key'
+      KMS_CRYPTO_KEY: 'test-key',
     }
     getDecryptor.cache.clear()
   })
@@ -151,7 +151,7 @@ describe('KMS decrypt wrapper', () => {
       await expect(wrapper(encodedSecret)).resolves.toBe('secret')
       expect(mockKMSClient.decrypt).toHaveBeenLastCalledWith({
         ciphertext: encodedSecret,
-        name: mockName
+        name: mockName,
       })
     })
 
