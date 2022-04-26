@@ -1,6 +1,6 @@
 # encrypted
 
-_NOTE_ The solution is for Google Cloud Platform only
+_DEPRECATED_ Google Cloud Platform has [Secret Manager](https://cloud.google.com/secret-manager) that solves the problem 
 
 ## Use Case
 
